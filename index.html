@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>제주 공영주차장 수요-공급 분석</title>
+<meta name="description" content="공공데이터 기반 제주 공영주차장 수요-공급 공백 분석 및 신설·증설 입지 추천">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0f14; --panel:#121923; --line:rgba(255,255,255,.08);
+    --text:#e2e8f0; --muted:#94a3b8; --dim:#64748b;
+    --teal:#2a9d8f; --orange:#e76f51; --blue:#38bdf8; --sand:#e9c46a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',-apple-system,'Segoe UI',sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+  section{padding:72px 0}
+  .eyebrow{font-size:12px;letter-spacing:3px;color:var(--teal);font-weight:700;margin-bottom:14px}
+  .stitle{font-size:30px;font-weight:900;letter-spacing:-.5px;margin-bottom:8px}
+  .slead{color:var(--muted);font-size:15px;max-width:720px}
+
+  /* hero */
+  .hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line);
+    background:radial-gradient(1200px 500px at 70% -10%,rgba(42,157,143,.25),transparent 60%),
+               radial-gradient(900px 400px at 10% 10%,rgba(56,189,248,.15),transparent 55%)}
+  .hero-in{padding:104px 0 88px}
+  .badge{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);
+    border:1px solid var(--line);border-radius:999px;padding:6px 14px;margin-bottom:26px}
+  .badge .dot{width:7px;height:7px;border-radius:50%;background:var(--teal);box-shadow:0 0 10px var(--teal)}
+  h1{font-size:clamp(34px,6vw,60px);font-weight:900;letter-spacing:-1.5px;line-height:1.08}
+  h1 .g{background:linear-gradient(100deg,var(--teal),var(--blue));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{margin-top:20px;color:var(--muted);font-size:17px;max-width:680px}
+  .stats{display:flex;flex-wrap:wrap;gap:40px;margin-top:40px}
+  .stat .n{font-size:38px;font-weight:900;letter-spacing:-1px}
+  .stat .l{font-size:13px;color:var(--dim);margin-top:2px}
+  .tags{margin-top:34px;display:flex;flex-wrap:wrap;gap:8px}
+  .tag{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:7px;padding:5px 11px}
+
+  /* map cards */
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:40px}
+  .card{display:block;background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden;transition:.25s}
+  .card:hover{transform:translateY(-4px);border-color:rgba(56,189,248,.4)}
+  .thumb{aspect-ratio:16/10;overflow:hidden;background:#0d1219}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:.4s}
+  .card:hover .thumb img{transform:scale(1.05)}
+  .cbody{padding:18px 20px 22px}
+  .cbadge{font-size:11px;font-weight:700;letter-spacing:1px;padding:4px 9px;border-radius:6px}
+  .ctitle{font-size:18px;font-weight:700;margin:12px 0 6px}
+  .cdesc{font-size:13px;color:var(--muted);min-height:58px}
+  .clink{margin-top:12px;font-size:13px;font-weight:700;color:var(--blue)}
+
+  /* method */
+  .sectalt{background:#0d131b;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .mrow{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;margin-top:34px}
+  .mcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 24px}
+  .mcard h3{font-size:16px;margin-bottom:8px}
+  .mcard h3 .k{color:var(--teal);font-weight:900;margin-right:8px}
+  .mcard p{font-size:13.5px;color:var(--muted)}
+  table{width:100%;border-collapse:collapse;margin-top:28px;font-size:13.5px}
+  th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line)}
+  th{color:var(--dim);font-weight:700;font-size:12px}
+  td .pill{font-size:11px;padding:2px 8px;border-radius:5px;font-weight:700}
+  .warn{background:rgba(231,111,81,.12);border:1px solid rgba(231,111,81,.3);border-radius:12px;padding:18px 22px;margin-top:30px;font-size:13.5px;color:#f1cdbf}
+  .warn b{color:#fff}
+  ul.lim{margin-top:18px;list-style:none;font-size:13.5px;color:var(--muted)}
+  ul.lim li{padding:6px 0 6px 20px;position:relative}
+  ul.lim li::before{content:"—";position:absolute;left:0;color:var(--dim)}
+
+  footer{border-top:1px solid var(--line);padding:40px 0;color:var(--dim);font-size:13px}
+  footer a{color:var(--muted);border-bottom:1px solid var(--line)}
+  @media(max-width:860px){.grid,.mrow{grid-template-columns:1fr}.stats{gap:26px}}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap hero-in">
+    <div class="badge"><span class="dot"></span> 공공데이터 분석 프로젝트 · Jeju</div>
+    <h1>제주 <span class="g">공영주차장</span><br>수요-공급 분석</h1>
+    <p class="sub">전국주차장정보표준데이터와 읍면동 유동인구를 결합해, 제주의 주차 공급이
+      수요에 비해 부족한 구역을 찾고 신설·증설 입지를 추천합니다.</p>
+    <div class="stats">
+      <div class="stat"><div class="n">1,557</div><div class="l">공영주차장 (개소)</div></div>
+      <div class="stat"><div class="n">34,418</div><div class="l">주차면 수</div></div>
+      <div class="stat"><div class="n">42</div><div class="l">분석 행정동</div></div>
+    </div>
+    <div class="tags">
+      <span class="tag">Python</span><span class="tag">pandas</span><span class="tag">shapely · pyproj</span>
+      <span class="tag">Folium</span><span class="tag">EPSG:5179</span><span class="tag">공공데이터포털</span>
+    </div>
+  </div>
+</header>
+
+<section id="maps">
+  <div class="wrap">
+    <div class="eyebrow">인터랙티브 지도</div>
+    <div class="stitle">분석 결과 지도 3종</div>
+    <p class="slead">각 지도는 클릭하면 열리고, 레이어 전환·마우스오버로 상세 값을 볼 수 있습니다.</p>
+    <div class="grid">
+      <a class="card" href="jeju_parking_supply.html">
+        <div class="thumb"><img src="images/thumb_supply.jpg" alt="공급 지도" loading="lazy"></div>
+        <div class="cbody">
+          <span class="cbadge" style="background:rgba(42,157,143,.15);color:#5eead4">공급</span>
+          <div class="ctitle">공영주차장 공급 지도</div>
+          <div class="cdesc">제주 공영주차장 1,557개소를 주차면 수로 가중해 표시하고, 행정동별 공급 밀도를 코로플레스로 나타냅니다.</div>
+          <div class="clink">지도 열기 →</div>
+        </div>
+      </a>
+      <a class="card" href="jeju_parking_gap.html">
+        <div class="thumb"><img src="images/thumb_gap.jpg" alt="공백 지도" loading="lazy"></div>
+        <div class="cbody">
+          <span class="cbadge" style="background:rgba(231,111,81,.15);color:#f4a48c">공백</span>
+          <div class="ctitle">수요-공급 공백 지도</div>
+          <div class="cdesc">행정동별 ‘주차면당 유동인구’로 공급 부족도를 표현합니다. 공영주차장이 없는 동은 별도 표시합니다.</div>
+          <div class="clink">지도 열기 →</div>
+        </div>
+      </a>
+      <a class="card" href="jeju_parking_recommend.html">
+        <div class="thumb"><img src="images/thumb_recommend.jpg" alt="추천 지도" loading="lazy"></div>
+        <div class="cbody">
+          <span class="cbadge" style="background:rgba(56,189,248,.15);color:#7dd3fc">추천</span>
+          <div class="ctitle">신설·증설 입지 추천</div>
+          <div class="cdesc">공백 상위 행정동을 신설/증설로 분류하고, 주거지역 안에서 후보 지점을 제시합니다.</div>
+          <div class="clink">지도 열기 →</div>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="sectalt" id="method">
+  <div class="wrap">
+    <div class="eyebrow">방법론</div>
+    <div class="stitle">어떻게 분석했나</div>
+    <div class="mrow">
+      <div class="mcard"><h3><span class="k">01</span>공급</h3>
+        <p>전국주차장정보표준데이터(공공데이터포털)에서 제주 공영주차장을 추출. 2022년 데이터와 달리
+          <b>주차면 수(주차구획수)</b>를 포함해, 단순 개소 수가 아닌 실제 수용 능력으로 공급을 측정합니다.</p></div>
+      <div class="mcard"><h3><span class="k">02</span>수요</h3>
+        <p>읍면동 단위 유동인구(거주·근무·<b>방문</b>인구)를 수요 지표로 사용. EPSG:5179 미터 좌표계로
+          투영해 행정동별로 집계합니다.</p></div>
+      <div class="mcard"><h3><span class="k">03</span>공백 지표</h3>
+        <p><b>주차면당 유동인구 = 유동인구 ÷ 주차면 수</b>. 높을수록 수요 대비 공급이 부족합니다.
+          공영주차장이 전혀 없는 행정동은 ‘신설 최우선’으로 분류합니다.</p></div>
+      <div class="mcard"><h3><span class="k">04</span>입지 추천</h3>
+        <p>공백 상위 행정동에서, <b>주거지역(OSM) 안</b>이면서 기존 공영주차장에서 가장 먼 ‘주차 사각지대’를
+          후보로 제시합니다. 산·오름 등 비주거지는 제외합니다.</p></div>
+    </div>
+
+    <table>
+      <thead><tr><th>순위</th><th>행정동</th><th>조치</th><th>현재 주차면</th><th>방문인구 비중</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>영천동 <span style="color:var(--dim)">서귀포</span></td><td><span class="pill" style="background:rgba(231,111,81,.2);color:#f4a48c">신설</span></td><td>0</td><td>51%</td></tr>
+        <tr><td>2</td><td>예래동 <span style="color:var(--dim)">서귀포</span></td><td><span class="pill" style="background:rgba(231,111,81,.2);color:#f4a48c">신설</span></td><td>0</td><td>64%</td></tr>
+        <tr><td>4</td><td>대천동 <span style="color:var(--dim)">서귀포</span></td><td><span class="pill" style="background:rgba(56,189,248,.18);color:#7dd3fc">증설</span></td><td>57</td><td>46%</td></tr>
+        <tr><td>5</td><td>봉개동 <span style="color:var(--dim)">제주</span></td><td><span class="pill" style="background:rgba(56,189,248,.18);color:#7dd3fc">증설</span></td><td>60</td><td>51%</td></tr>
+        <tr><td>7</td><td>중문동 <span style="color:var(--dim)">서귀포 · 관광</span></td><td><span class="pill" style="background:rgba(56,189,248,.18);color:#7dd3fc">증설</span></td><td>143</td><td>39%</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="data">
+  <div class="wrap">
+    <div class="eyebrow">데이터 · 한계</div>
+    <div class="stitle">출처와 솔직한 한계</div>
+    <div class="mrow">
+      <div class="mcard"><h3>데이터 출처</h3>
+        <p>· 전국주차장정보표준데이터 (공공데이터포털, 국토교통부, 2026)<br>
+           · 제주 읍면동 유동인구 매쉬업 (제주빅데이터센터, 2017~2020)<br>
+           · 행정동·주거지역 경계 (OpenStreetMap)<br>
+           · 배경지도 (Esri Canvas)</p></div>
+      <div class="mcard"><h3>지표 해석</h3>
+        <p>유동인구는 월 체류량 지수(절대 인원수 아님)로, 행정동 간 <b>상대 비교</b>용입니다.
+          공급은 <b>공영주차장</b>만 포함하며 민영·부설은 빠져 있어 실제 공급은 더 많을 수 있습니다.</p></div>
+    </div>
+    <div class="warn">
+      <b>데이터 시점 유의.</b> 공급은 2026년, 수요(유동인구)는 2017~2020년으로 시점이 다릅니다.
+      무료로 공개된 읍면동 유동인구가 이 시기까지라, 본 분석은 <b>방법론 데모</b>로 봐 주세요.
+      더 최신 수요가 공개되면 데이터 소스만 교체하면 됩니다.
+    </div>
+    <ul class="lim">
+      <li>거리·면적은 투영 좌표(EPSG:5179) 기준이며 도로망·단지 출입구는 반영하지 않습니다.</li>
+      <li>주차 수요는 유동인구 외 체류시간·차량분담률·회전율의 영향도 받습니다(미반영).</li>
+      <li>행정동 42/43. 일도1동은 OSM 경계 미제공으로 제외했습니다.</li>
+      <li>후보 지점은 ‘거리 기준’ 휴리스틱입니다. 격자·건물 단위 수요가 생기면 수요가중 최적화로 고도화할 수 있습니다.</li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    공공데이터 기반 제주 공영주차장 수요-공급 분석 · 재현 스크립트와 데이터는
+    <a href="https://github.com/sangdeokWoo/jeju-parking-analysis">GitHub 저장소</a>에 있습니다.
+  </div>
+</footer>
+
+</body>
+</html>
